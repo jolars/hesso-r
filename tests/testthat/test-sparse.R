@@ -3,21 +3,21 @@ test_that("sparse and dense methods are equivalent", {
   p <- 5
 
   for (family in c("gaussian", "binomial")) {
-    d <- generateDesign(n, p, family = family, density = 0.5)
-    X <- d$X
+    d <- generate_design(n, p, family = family, density = 0.5)
+    x <- d$x
     y <- d$y
 
     for (standardize in c(TRUE, FALSE)) {
       set.seed(1)
       fit_dense <- lassoPath(
-        as.matrix(X),
+        as.matrix(x),
         y,
         family,
         standardize = standardize
       )
       set.seed(1)
       fit_sparse <- lassoPath(
-        X,
+        x,
         y,
         family,
         standardize = standardize

@@ -4,12 +4,17 @@
 \name{hesso-package}
 \alias{hesso}
 \alias{hesso-package}
-\title{hesso: What the Package Does (One Line, Title Case)}
+\title{hesso: Hessian-Based Screening Rules for the Lasso}
 \description{
-What the package does (one paragraph).
+Procedures to fit the lasso using Hessian-based screening rules in addition to several other screening rules.
 }
 \author{
-\strong{Maintainer}: Johan Larsson \email{johanlarsson@outlook.com} (\href{https://orcid.org/0000-0002-4029-5945}{ORCID})
+\strong{Maintainer}: Johan Larsson \email{johan.larsson@stat.lu.se} (\href{https://orcid.org/0000-0002-4029-5945}{ORCID})
+
+Authors:
+\itemize{
+  \item Jonas Wallin \email{jonas.wallin@stat.lu.se} (\href{https://orcid.org/0000-0003-0381-6593}{ORCID})
+}
 
 }
 \keyword{internal}

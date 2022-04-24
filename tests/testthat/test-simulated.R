@@ -23,14 +23,14 @@ test_that("gaussian and logistic models for simulated data", {
     standardize <- g$standardize
     density <- g$density
 
-    data <- generateDesign(
+    data <- generate_design(
       n,
       p,
       family = g$family,
       density = g$density
     )
 
-    X <- data$X
+    x <- data$x
     y <- data$y
 
     if (family == "gaussian") {
@@ -38,7 +38,7 @@ test_that("gaussian and logistic models for simulated data", {
     }
 
     fit <- lassoPath(
-      X,
+      x,
       y,
       family,
       verbosity = 0,
@@ -47,7 +47,7 @@ test_that("gaussian and logistic models for simulated data", {
       store_dual_variables = TRUE
     )
 
-    gaps <- check_gaps(fit, standardize, X, y, tol_gap)
+    gaps <- check_gaps(fit, standardize, x, y, tol_gap)
 
     expect_true(all(gaps$below_tol))
   }

@@ -31,7 +31,6 @@ lassoPath(T& X,
           const bool hessian_warm_starts,
           const bool augment_with_gap_safe,
           std::string log_hessian_update_type,
-          const arma::uword log_hessian_auto_update_freq,
           arma::uword path_length,
           const arma::uword maxit,
           const double tol_gap,
@@ -58,12 +57,6 @@ lassoPath(T& X,
 
     if (screening_type == "edpp" || screening_type == "sasvi")
       Rcpp::stop("EDPP and SASVI cannot be used in logistic regression");
-  }
-
-  bool log_hessian_auto = log_hessian_update_type == "auto";
-
-  if (log_hessian_auto) {
-    log_hessian_update_type = "full";
   }
 
   vec beta(p, fill::zeros);
@@ -480,7 +473,6 @@ lassoPathDense(arma::mat X,
                const bool hessian_warm_starts,
                const bool augment_with_gap_safe,
                std::string log_hessian_update_type,
-               const arma::uword log_hessian_auto_update_freq,
                const arma::uword path_length,
                const arma::uword maxit,
                const double tol_gap,
@@ -503,7 +495,6 @@ lassoPathDense(arma::mat X,
                    hessian_warm_starts,
                    augment_with_gap_safe,
                    log_hessian_update_type,
-                   log_hessian_auto_update_freq,
                    path_length,
                    maxit,
                    tol_gap,
@@ -529,7 +520,6 @@ lassoPathSparse(arma::sp_mat X,
                 const bool hessian_warm_starts,
                 const bool augment_with_gap_safe,
                 std::string log_hessian_update_type,
-                const arma::uword log_hessian_auto_update_freq,
                 const arma::uword path_length,
                 const arma::uword maxit,
                 const double tol_gap,
@@ -552,7 +542,6 @@ lassoPathSparse(arma::sp_mat X,
                    hessian_warm_starts,
                    augment_with_gap_safe,
                    log_hessian_update_type,
-                   log_hessian_auto_update_freq,
                    path_length,
                    maxit,
                    tol_gap,

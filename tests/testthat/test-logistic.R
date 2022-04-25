@@ -9,7 +9,7 @@ test_that("test logistic regression on real data", {
   for (dataset in datalist) {
     data(list = c(dataset))
     d <- get(dataset)
-    x <- d$X
+    x <- d$x
     y <- d$y
 
     fit <- lassoPath(

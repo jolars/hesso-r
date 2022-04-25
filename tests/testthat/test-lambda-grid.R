@@ -6,17 +6,17 @@ test_that("lambda grid calculations are correct", {
 
     n <- 50
 
-    X <- matrix(rnorm(n * p), n, p)
+    x <- matrix(rnorm(n * p), n, p)
     beta <- rnorm(p)
-    y <- X %*% beta + rnorm(n)
+    y <- x %*% beta + rnorm(n)
 
-    X <- scale(X)
+    x <- scale(x)
     y <- y - mean(y)
 
     family <- "gaussian"
 
-    res_work <- lassoPath(X, y, family = family)
-    res_glmn <- glmnet::glmnet(X, y, intercept = FALSE)
+    res_work <- lassoPath(x, y, family = family)
+    res_glmn <- glmnet::glmnet(x, y, intercept = FALSE)
 
     n_lambda <- min(length(res_work$lambda), length(res_glmn$lambda))
 

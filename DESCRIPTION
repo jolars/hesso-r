@@ -1,6 +1,6 @@
 Package: hesso
 Title: Lasso Paths with Hessian Screening and Warm Starts
-Version: 0.1.0
+Version: 0.0.0.9000
 Authors@R:
     c(
       person(
@@ -16,6 +16,12 @@ Authors@R:
         role = "aut",
         email = "jonas.wallin@stat.lu.se",
         comment = c(ORCID = "0000-0003-0381-6593")
+      ),
+      person(
+        given = "Tyler B.",
+        family = "Johnson",
+        role = "ctb",
+        comment = "line search procedure"
       )
     )
 Description: Procedures for fitting L1-regularized least-squares regression (the

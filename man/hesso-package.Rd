@@ -4,9 +4,9 @@
 \name{hesso-package}
 \alias{hesso}
 \alias{hesso-package}
-\title{hesso: Hessian-Based Screening Rules for the Lasso}
+\title{hesso: Lasso Paths with Hessian Screening and Warm Starts}
 \description{
-Procedures to fit the lasso using Hessian-based screening rules in addition to several other screening rules.
+Procedures for fitting L1-regularized least-squares regression (the lasso) and logistic regression using Hessian screening and warm starts.
 }
 \author{
 \strong{Maintainer}: Johan Larsson \email{johan.larsson@stat.lu.se} (\href{https://orcid.org/0000-0002-4029-5945}{ORCID})
@@ -14,6 +14,11 @@ Procedures to fit the lasso using Hessian-based screening rules in addition to s
 Authors:
 \itemize{
   \item Jonas Wallin \email{jonas.wallin@stat.lu.se} (\href{https://orcid.org/0000-0003-0381-6593}{ORCID})
+}
+
+Other contributors:
+\itemize{
+  \item Tyler B. Johnson (line search procedure) [contributor]
 }
 
 }

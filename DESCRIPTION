@@ -1,5 +1,5 @@
 Package: hesso
-Title: Hessian-Based Screening Rules for the Lasso
+Title: Lasso Paths with Hessian Screening and Warm Starts
 Version: 0.1.0
 Authors@R:
     c(
@@ -18,8 +18,8 @@ Authors@R:
         comment = c(ORCID = "0000-0003-0381-6593")
       )
     )
-Description: Procedures to fit the lasso using Hessian-based screening
-    rules in addition to several other screening rules.
+Description: Procedures for fitting L1-regularized least-squares regression (the
+    lasso) and logistic regression using Hessian screening and warm starts.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: false

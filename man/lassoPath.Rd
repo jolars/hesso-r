@@ -10,18 +10,11 @@ lassoPath(
   family = c("gaussian", "binomial"),
   lambda = NULL,
   standardize = TRUE,
-  screening_type = c("working", "hessian", "edpp", "gap_safe", "strong", "celer",
-    "blitz", "sasvi"),
-  shuffle = match.arg(screening_type) == "blitz",
+  shuffle = FALSE,
   check_frequency = if (NROW(x) > NCOL(x)) 1 else 10,
-  screen_frequency = 10,
   hessian_warm_starts = TRUE,
-  celer_use_old_dual = TRUE,
-  celer_use_accel = TRUE,
-  celer_prune = TRUE,
-  gap_safe_active_start = TRUE,
   augment_with_gap_safe = TRUE,
-  log_hessian_update_type = c("full", "auto", "approx"),
+  log_hessian_update_type = c("full", "approx"),
   log_hessian_auto_update_freq = 10,
   path_length = 100L,
   maxit = 1e+05,
@@ -43,36 +36,18 @@ are automatically computed}
 
 \item{standardize}{Whether to standardize the predictors}
 
-\item{screening_type}{Screening rule}
-
 \item{shuffle}{Shuffle working set before each CD pass?}
 
 \item{check_frequency}{Frequency at which duality gap is checked for
 inner CD loop}
 
-\item{screen_frequency}{Frequency at which predictors are screened for
-the gap safe solver}
-
 \item{hessian_warm_starts}{Whether to use warm starts based on Hessian}
-
-\item{celer_use_old_dual}{whether to try to use previous dual when checking
-duality gap globally and screening for Celer}
-
-\item{celer_use_accel}{whether to use accelerated dual point for Celer}
-
-\item{celer_prune}{whether to use pruning for Celer}
-
-\item{gap_safe_active_start}{Whether to use the active start strategy for
-the Gap-Safe rule}
 
 \item{augment_with_gap_safe}{Whether or not augment heuristic rules
 with Gap Safe checks during KKT checks}
 
 \item{log_hessian_update_type}{What type of strategy to use for
 updating the hessian for logistic regression}
-
-\item{log_hessian_auto_update_freq}{Frequency of hessian updates when
-\code{log_hessian_update_type = "auto"}}
 
 \item{path_length}{The (desired) length of the lasso path}
 

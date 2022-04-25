@@ -6,7 +6,6 @@
 #include "model.h"
 #include "rescaleCoefficients.h"
 #include "safeScreening.h"
-#include "screenPredictors.h"
 #include "setupModel.h"
 #include "solver.hpp"
 #include "squaredColNorms.h"
@@ -24,10 +23,8 @@ lassoPath(T& X,
           arma::vec lambdas,
           const std::string lambda_type,
           const bool standardize,
-          const std::string screening_type,
           const bool shuffle,
           const arma::uword check_frequency,
-          const arma::uword screen_frequency,
           const bool hessian_warm_starts,
           const bool augment_with_gap_safe,
           std::string log_hessian_update_type,
@@ -54,9 +51,6 @@ lassoPath(T& X,
     } else if (y_unique(0) != 0 || y_unique(1) != 1) {
       Rcpp::stop("y is not in {0, 1}");
     }
-
-    if (screening_type == "edpp" || screening_type == "sasvi")
-      Rcpp::stop("EDPP and SASVI cannot be used in logistic regression");
   }
 
   vec beta(p, fill::zeros);
@@ -78,12 +72,9 @@ lassoPath(T& X,
 
   const vec X_offset = X_mean / X_sd;
   const double y_center = mean(y);
-  const double y_norm = norm(y);
 
   const vec X_norms_squared = squaredColNorms(X, X_offset, standardize);
   const vec X_norms = sqrt(X_norms_squared);
-
-  const uword ws_size_init = std::min(p, static_cast<uword>(100));
 
   auto model = setupModel(family, X_norms_squared, n, log_hessian_update_type);
 
@@ -153,18 +144,9 @@ lassoPath(T& X,
 
   vec Hinv_s = Hinv * s(active_perm);
 
-  vec XTy(p); // only used with SASVI screening rule
-
-  if (screening_type == "sasvi") {
-    for (uword j = 0; j < p; ++j)
-      XTy(j) = innerProduct(X, j, y, X_offset, standardize);
-  }
-
   const double null_dev = model->deviance(residual, Xbeta, y);
   double dev = null_dev;
   double dev_prev = dev;
-
-  std::string screening_type_temp = screening_type;
 
   std::vector<double> cd_time;
   std::vector<double> duplicates_time;
@@ -216,8 +198,6 @@ lassoPath(T& X,
                             y,
                             X_norms,
                             X_offset,
-                            y_norm,
-                            XTy,
                             standardize,
                             active_set_prev,
                             strong_set,
@@ -225,16 +205,13 @@ lassoPath(T& X,
                             lambda_prev,
                             lambda_max,
                             active_set.n_elem,
-                            screening_type_temp,
                             shuffle,
                             check_frequency,
-                            screen_frequency,
                             augment_with_gap_safe,
                             i,
                             maxit,
                             tol_gap,
                             line_search,
-                            ws_size_init,
                             verbosity);
 
     if (n_passes_i >= maxit) {
@@ -326,7 +303,6 @@ lassoPath(T& X,
                                                  dev,
                                                  dev_prev,
                                                  null_dev,
-                                                 screening_type,
                                                  verbosity);
 
     if (stop_path) {
@@ -398,20 +374,10 @@ lassoPath(T& X,
     strong_set = find(strong);
     n_strong.emplace_back(sum(strong));
 
-    screened = screenPredictors(screening_type,
-                                strong,
-                                ever_active,
-                                residual,
-                                c,
-                                c_grad,
-                                X,
-                                X_norms_squared,
-                                X_offset,
-                                y,
-                                lambda,
-                                lambda_next,
-                                gamma,
-                                standardize);
+    // screen predictors with Hessian screening rule
+    vec c_pred = c + c_grad * (lambda_next - lambda);
+    screened = (abs(c_pred) + gamma * (lambda - lambda_next) > lambda_next) ||
+               ever_active;
 
     // make sure duplicates stay out
     screened(find(duplicated)).fill(false);
@@ -466,10 +432,8 @@ lassoPathDense(arma::mat X,
                arma::vec lambdas,
                const std::string lambda_type,
                const bool standardize,
-               const std::string screening_type,
                const bool shuffle,
                const arma::uword check_frequency,
-               const arma::uword screen_frequency,
                const bool hessian_warm_starts,
                const bool augment_with_gap_safe,
                std::string log_hessian_update_type,
@@ -488,10 +452,8 @@ lassoPathDense(arma::mat X,
                    lambdas,
                    lambda_type,
                    standardize,
-                   screening_type,
                    shuffle,
                    check_frequency,
-                   screen_frequency,
                    hessian_warm_starts,
                    augment_with_gap_safe,
                    log_hessian_update_type,
@@ -513,10 +475,8 @@ lassoPathSparse(arma::sp_mat X,
                 arma::vec lambdas,
                 const std::string lambda_type,
                 const bool standardize,
-                const std::string screening_type,
                 const bool shuffle,
                 const arma::uword check_frequency,
-                const arma::uword screen_frequency,
                 const bool hessian_warm_starts,
                 const bool augment_with_gap_safe,
                 std::string log_hessian_update_type,
@@ -535,10 +495,8 @@ lassoPathSparse(arma::sp_mat X,
                    lambdas,
                    lambda_type,
                    standardize,
-                   screening_type,
                    shuffle,
                    check_frequency,
-                   screen_frequency,
                    hessian_warm_starts,
                    augment_with_gap_safe,
                    log_hessian_update_type,

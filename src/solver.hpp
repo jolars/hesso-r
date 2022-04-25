@@ -4,7 +4,6 @@
 #include "linearAlgebra.h"
 #include "model.h"
 #include "safeScreening.h"
-#include "sasviScreening.h"
 #include "updateCorrelation.h"
 #include "updateLinearPredictor.h"
 #include "utils.h"
@@ -31,8 +30,6 @@ fit(arma::uvec& screened,
     const arma::vec& y,
     const arma::vec& X_norms,
     const arma::vec& X_offset,
-    const double y_norm,
-    const arma::vec& XTy,
     const bool standardize,
     const arma::uvec& active_set,
     const arma::uvec& strong_set,
@@ -40,16 +37,13 @@ fit(arma::uvec& screened,
     const double lambda_prev,
     const double lambda_max,
     const arma::uword n_active_prev,
-    const std::string screening_type,
     const bool shuffle,
     const arma::uword check_frequency,
-    const arma::uword screen_frequency,
     const bool augment_with_gap_safe,
     const arma::uword step,
     const arma::uword maxit,
     const double tol_gap,
     const bool line_search,
-    const arma::uword ws_size_init,
     const arma::uword verbosity)
 {
   using namespace arma;
@@ -82,7 +76,6 @@ fit(arma::uvec& screened,
   bool inner_solver_converged = false;
   bool progress = true;
 
-  uword ws_size = ws_size_init;
   vec c_old(p);
   vec d(p);
   vec residual_old;
@@ -242,7 +235,7 @@ fit(arma::uvec& screened,
         // this code is based on https://github.com/tbjohns/BlitzL1 as of
         // 2022-01-12, which is licensed under the MIT license, Copyright
         // Tyler B. Johnson 2015
-        ws_size = working_set.n_elem;
+        uword ws_size = working_set.n_elem;
 
         vec X_delta_beta(n, fill::zeros);
         vec delta_beta(ws_size, fill::zeros);
@@ -272,8 +265,7 @@ fit(arma::uvec& screened,
         }
 
         for (uword it_inner = 0; it_inner < max_cd_itr; ++it_inner) {
-
-          // blitz always shuffles the working set
+          // shuffle the working set
           uvec perm = randperm(ws_size);
           working_set = working_set(perm);
           delta_beta = delta_beta(perm);

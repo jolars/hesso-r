@@ -11,7 +11,6 @@ checkStoppingConditions(const arma::uword step,
                         const double dev,
                         const double dev_prev,
                         const double null_dev,
-                        const std::string screening_type,
                         const arma::uword verbosity)
 {
   if (step == 1) {

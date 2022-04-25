@@ -6,21 +6,14 @@
 #' @param y The reponse vector
 #' @param family The name of the family, "gaussian" or "logistic"
 #' @param standardize Whether to standardize the predictors
-#' @param screening_type Screening rule
 #' @param shuffle Shuffle working set before each CD pass?
 #' @param check_frequency Frequency at which duality gap is checked for
 #'   inner CD loop
-#' @param screen_frequency Frequency at which predictors are screened for
-#'   the gap safe solver
 #' @param hessian_warm_starts Whether to use warm starts based on Hessian
-#' @param gap_safe_active_start Whether to use the active start strategy for
-#'   the Gap-Safe rule
 #' @param augment_with_gap_safe Whether or not augment heuristic rules
 #'   with Gap Safe checks during KKT checks
 #' @param log_hessian_update_type What type of strategy to use for
 #'   updating the hessian for logistic regression
-#' @param log_hessian_auto_update_freq Frequency of hessian updates when
-#'   `log_hessian_update_type = "auto"`
 #' @param path_length The (desired) length of the lasso path
 #' @param maxit Maximum number of iterations for Coordinate Descent loop
 #' @param tol_gap Tolerance threshold for relative duality gap.
@@ -32,10 +25,6 @@
 #'   level output, 2 = inner solver output
 #' @param lambda weights for the regularization path, if `NULL`, then they
 #'   are automatically computed
-#' @param celer_use_old_dual whether to try to use previous dual when checking
-#'   duality gap globally and screening for Celer
-#' @param celer_use_accel whether to use accelerated dual point for Celer
-#' @param celer_prune whether to use pruning for Celer
 #' @param store_dual_variables whether to store dual variables throughout
 #'   fitting
 #'
@@ -45,19 +34,8 @@ lassoPath <- function(x,
                       family = c("gaussian", "binomial"),
                       lambda = NULL,
                       standardize = TRUE,
-                      screening_type = c(
-                        "working",
-                        "hessian",
-                        "edpp",
-                        "gap_safe",
-                        "strong",
-                        "celer",
-                        "blitz",
-                        "sasvi"
-                      ),
-                      shuffle = match.arg(screening_type) == "blitz",
+                      shuffle = FALSE,
                       check_frequency = if (NROW(x) > NCOL(x)) 1 else 10,
-                      screen_frequency = 10,
                       hessian_warm_starts = TRUE,
                       augment_with_gap_safe = TRUE,
                       log_hessian_update_type = c("full", "approx"),
@@ -70,11 +48,7 @@ lassoPath <- function(x,
                       verify_hessian = FALSE,
                       line_search = TRUE,
                       verbosity = 0) {
-  n <- nrow(x)
-  p <- ncol(x)
-
   family <- match.arg(family)
-  screening_type <- match.arg(screening_type)
   log_hessian_update_type <- match.arg(log_hessian_update_type)
 
   if (is.null(lambda)) {
@@ -96,10 +70,8 @@ lassoPath <- function(x,
       lambda,
       lambda_type,
       standardize,
-      screening_type,
       shuffle,
       check_frequency,
-      screen_frequency,
       hessian_warm_starts,
       augment_with_gap_safe,
       log_hessian_update_type,
@@ -120,10 +92,8 @@ lassoPath <- function(x,
       lambda,
       lambda_type,
       standardize,
-      screening_type,
       shuffle,
       check_frequency,
-      screen_frequency,
       hessian_warm_starts,
       augment_with_gap_safe,
       log_hessian_update_type,

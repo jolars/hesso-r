@@ -3,6 +3,5 @@
 export(check_gaps)
 export(generate_design)
 export(lassoPath)
-import(RcppEigen)
 importFrom(Rcpp,sourceCpp)
 useDynLib(hesso, .registration = TRUE)

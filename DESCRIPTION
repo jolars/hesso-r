@@ -37,10 +37,9 @@ LinkingTo:
 Imports:
     Rcpp
 Suggests:
-    testthat (>= 3.0.0),
+    tinytest,
     glmnet,
     covr
-Config/testthat/edition: 3
 Depends:
     R (>= 4.1),
     Matrix (>= 1.3-2)

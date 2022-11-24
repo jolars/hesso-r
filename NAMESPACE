@@ -2,6 +2,7 @@
 
 export(check_gaps)
 export(generate_design)
-export(lassoPath)
+export(lasso)
+export(lasso_path)
 importFrom(Rcpp,sourceCpp)
 useDynLib(hesso, .registration = TRUE)

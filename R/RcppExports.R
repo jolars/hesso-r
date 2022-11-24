@@ -9,3 +9,11 @@ lassoPathSparse <- function(X, y, family, lambdas, lambda_type, standardize, shu
     .Call(`_hesso_lassoPathSparse`, X, y, family, lambdas, lambda_type, standardize, shuffle, check_frequency, hessian_warm_starts, augment_with_gap_safe, log_hessian_update_type, path_length, maxit, tol_gap, gamma, store_dual_variables, verify_hessian, line_search, verbosity)
 }
 
+rcppLassoDense <- function(x, y, lambda, args) {
+    .Call(`_hesso_rcppLassoDense`, x, y, lambda, args)
+}
+
+update_hessian <- function(H, Hinv, x, active_set, active_set_prev, active_perm, active_perm_prev, verify_hessian, verbose) {
+    .Call(`_hesso_update_hessian`, H, Hinv, x, active_set, active_set_prev, active_perm, active_perm_prev, verify_hessian, verbose)
+}
+

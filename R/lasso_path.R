@@ -29,25 +29,25 @@
 #'   fitting
 #'
 #' @export
-lassoPath <- function(x,
-                      y,
-                      family = c("gaussian", "binomial"),
-                      lambda = NULL,
-                      standardize = TRUE,
-                      shuffle = FALSE,
-                      check_frequency = if (NROW(x) > NCOL(x)) 1 else 10,
-                      hessian_warm_starts = TRUE,
-                      augment_with_gap_safe = TRUE,
-                      log_hessian_update_type = c("full", "approx"),
-                      log_hessian_auto_update_freq = 10,
-                      path_length = 100L,
-                      maxit = 1e5,
-                      tol_gap = 1e-4,
-                      gamma = 0.01,
-                      store_dual_variables = FALSE,
-                      verify_hessian = FALSE,
-                      line_search = TRUE,
-                      verbosity = 0) {
+lasso_path <- function(x,
+                       y,
+                       family = c("gaussian", "binomial"),
+                       lambda = NULL,
+                       standardize = TRUE,
+                       shuffle = FALSE,
+                       check_frequency = if (NROW(x) > NCOL(x)) 1 else 10,
+                       hessian_warm_starts = TRUE,
+                       augment_with_gap_safe = TRUE,
+                       log_hessian_update_type = c("full", "approx"),
+                       log_hessian_auto_update_freq = 10,
+                       path_length = 100L,
+                       maxit = 1e5,
+                       tol_gap = 1e-4,
+                       gamma = 0.01,
+                       store_dual_variables = FALSE,
+                       verify_hessian = FALSE,
+                       line_search = TRUE,
+                       verbosity = 0) {
   family <- match.arg(family)
   log_hessian_update_type <- match.arg(log_hessian_update_type)
 

@@ -8,6 +8,7 @@
 #include "updateLinearPredictor.h"
 #include "utils.h"
 #include <RcppArmadillo.h>
+#include <memory>
 
 template<typename T>
 std::tuple<double,
@@ -71,23 +72,14 @@ fit(arma::uvec& screened,
   vec w(n, fill::ones);
 
   double duality_gap = primal_value - dual_value;
-  double duality_gap_prev = datum::inf;
 
   bool inner_solver_converged = false;
-  bool progress = true;
 
   vec c_old(p);
   vec d(p);
   vec residual_old;
 
   double tol_mod = model->toleranceModifier(y);
-
-  // line search parameters
-  const uword MAX_BACKTRACK_ITR = 20;
-  const uword MAX_PROX_NEWTON_CD_ITR = 20;
-  const double PROX_NEWTON_EPSILON_RATIO = 10;
-  const uword MIN_PROX_NEWTON_CD_ITR = 2;
-  double prox_newton_grad_diff = 0;
 
   double n_screened = 0;
   uword it = 0;
@@ -111,6 +103,8 @@ fit(arma::uvec& screened,
       }
 
       if (inner_solver_converged && it > 0) {
+        inner_solver_converged = false;
+
         double t0 = timer.toc();
 
         bool outer_check = false;
@@ -154,8 +148,9 @@ fit(arma::uvec& screened,
                   tol_gap * tol_mod);
         }
 
-        if (duality_gap <= tol_gap * tol_mod)
+        if (duality_gap <= tol_gap * tol_mod) {
           break;
+        }
 
         if (any(violations)) {
           n_refits += 1;
@@ -192,184 +187,13 @@ fit(arma::uvec& screened,
 
       n_screened += screened_set.n_elem;
 
-      if (inner_solver_converged) {
-        // reset inner solver variables
-        it_inner = 0;
-        inner_solver_converged = false;
-        progress = true;
-      }
+      Rcpp::checkUserInterrupt();
 
-      double t0 = timer.toc();
-
-      if (!line_search) {
-        if (it_inner != 0) {
-          if (shuffle || !progress)
-            working_set = arma::shuffle(working_set);
-        }
-
-        for (auto&& j : working_set) {
-          updateCorrelation(c, residual, X, j, X_offset, standardize);
-          double hess_j = model->hessianTerm(X, j, X_offset, standardize);
-
-          if (hess_j <= 0)
-            continue;
-
-          double beta_j_old = beta(j);
-          double v =
-            prox(beta_j_old + c(j) / hess_j, lambda / hess_j) - beta(j);
-
-          if (v != 0) {
-            beta(j) = beta_j_old + v;
-            model->adjustResidual(residual,
-                                  Xbeta,
-                                  X,
-                                  y,
-                                  j,
-                                  beta(j) - beta_j_old,
-                                  X_offset,
-                                  standardize);
-          }
-        }
-      } else {
-        // blitz-type line search
-        // this code is based on https://github.com/tbjohns/BlitzL1 as of
-        // 2022-01-12, which is licensed under the MIT license, Copyright
-        // Tyler B. Johnson 2015
-        uword ws_size = working_set.n_elem;
-
-        vec X_delta_beta(n, fill::zeros);
-        vec delta_beta(ws_size, fill::zeros);
-        vec hess_cache(ws_size);
-        vec prox_newton_grad_cache(ws_size);
-
-        double prox_newton_epsilon = 0;
-
-        uword max_cd_itr = MAX_PROX_NEWTON_CD_ITR;
-
-        w = model->weights(residual, y);
-
-        for (uword j = 0; j < ws_size; ++j) {
-          uword ind = working_set(j);
-          hess_cache(j) = model->hessianTerm(X, ind, X_offset, standardize);
-        }
-
-        if (it_inner == 0) {
-          max_cd_itr = MIN_PROX_NEWTON_CD_ITR;
-          prox_newton_grad_diff = 0;
-
-          updateCorrelation(c, residual, X, working_set, X_offset, standardize);
-          prox_newton_grad_cache = -c(working_set);
-        } else {
-          prox_newton_epsilon =
-            PROX_NEWTON_EPSILON_RATIO * prox_newton_grad_diff;
-        }
-
-        for (uword it_inner = 0; it_inner < max_cd_itr; ++it_inner) {
-          // shuffle the working set
-          uvec perm = randperm(ws_size);
-          working_set = working_set(perm);
-          delta_beta = delta_beta(perm);
-          prox_newton_grad_cache = prox_newton_grad_cache(perm);
-          hess_cache = hess_cache(perm);
-
-          double sum_sq_hess_diff = 0;
-
-          for (uword j = 0; j < ws_size; ++j) {
-            uword ind = working_set(j);
-            double hess_j = hess_cache(j);
-
-            if (hess_j <= 0)
-              continue;
-
-            double grad = prox_newton_grad_cache(j) +
-                          weightedInnerProduct(
-                            X, ind, X_delta_beta, w, X_offset, standardize);
-
-            double old_value = beta(ind) + delta_beta(j);
-            double proposal = old_value - grad / hess_j;
-            double new_value = prox(proposal, lambda / hess_j);
-            double diff = new_value - old_value;
-
-            if (diff != 0) {
-              delta_beta(j) = new_value - beta(ind);
-
-              addScaledColumn(
-                X_delta_beta, X, ind, diff, X_offset, standardize);
-              sum_sq_hess_diff += diff * diff * hess_j * hess_j;
-            }
-          }
-
-          if (sum_sq_hess_diff < prox_newton_epsilon &&
-              it_inner + 1 >= MIN_PROX_NEWTON_CD_ITR) {
-            break;
-          }
-        }
-
-        double t = 1;
-        double last_t = 0;
-
-        for (uword backtrack_itr = 0; backtrack_itr < MAX_BACKTRACK_ITR;
-             ++backtrack_itr) {
-          double diff_t = t - last_t;
-
-          double subgrad_t = 0;
-
-          for (uword j = 0; j < ws_size; ++j) {
-            uword ind = working_set(j);
-            beta(ind) += diff_t * delta_beta(j);
-
-            if (beta(ind) < 0)
-              subgrad_t -= lambda * delta_beta(j);
-            else if (beta(ind) > 0)
-              subgrad_t += lambda * delta_beta(j);
-            else
-              subgrad_t -= lambda * std::abs(delta_beta(j));
-          }
-
-          Xbeta += diff_t * X_delta_beta;
-
-          model->updateResidual(residual, Xbeta, y);
-
-          subgrad_t += dot(X_delta_beta, -residual);
-
-          if (subgrad_t < 0) {
-            break;
-          } else {
-            last_t = t;
-            t *= 0.5;
-          }
-        }
-
-        // cache gradients for next iteration
-        if (t != 1) {
-          X_delta_beta *= t;
-        }
-
-        updateCorrelation(c, residual, X, working_set, X_offset, standardize);
-
-        for (uword j = 0; j < ws_size; ++j) {
-          uword ind = working_set(j);
-
-          double actual_grad = -c(ind);
-          double approximate_grad =
-            prox_newton_grad_cache(j) +
-            weightedInnerProduct(
-              X, ind, X_delta_beta, w, X_offset, standardize);
-
-          prox_newton_grad_cache(j) = actual_grad;
-          double diff = actual_grad - approximate_grad;
-          prox_newton_grad_diff += diff * diff;
-        }
-      }
-
-      if ((it_inner % check_frequency == 0) || line_search) {
+      if (it_inner % check_frequency == 0) {
         primal_value =
           model->primal(residual, Xbeta, beta, y, lambda, working_set);
 
-        if (!line_search) {
-          // correlation vector is always updated at end of line search
-          updateCorrelation(c, residual, X, working_set, X_offset, standardize);
-        }
+        updateCorrelation(c, residual, X, working_set, X_offset, standardize);
 
         dual_scale = std::max(lambda, max(abs(c(working_set))));
         theta = residual / dual_scale;
@@ -384,43 +208,57 @@ fit(arma::uvec& screened,
                   duality_gap,
                   tol_gap_inner);
 
-        inner_solver_converged = duality_gap <= tol_gap_inner;
-
-        if (line_search) {
-          // line search should ensure progress in the primal, so if primal
-          // value increases, then the limit of machine precision must have been
-          // reached
-          if (primal_value >= primal_value_prev)
-            inner_solver_converged = true;
-        }
-
-        progress = duality_gap < duality_gap_prev;
-
-        if (!progress && verbosity >= 2)
-          Rprintf("      no progress; shuffling indices\n");
+        inner_solver_converged =
+          duality_gap <= tol_gap_inner || primal_value >= primal_value_prev;
 
         if (inner_solver_converged) {
           if (verbosity >= 2)
             Rprintf("      inner solver converged\n");
 
           primal_value_prev = datum::inf;
-          duality_gap_prev = datum::inf;
         } else {
           primal_value_prev = primal_value;
-          duality_gap_prev = duality_gap;
         }
       }
 
-      cd_time += timer.toc() - t0;
+      double t0 = timer.toc();
+
+      if (!inner_solver_converged) {
+        if (it_inner != 0) {
+          // if (shuffle || !progress)
+          if (shuffle)
+            working_set = arma::shuffle(working_set);
+        }
+
+        for (auto&& j : working_set) {
+          updateCorrelation(c, residual, X, j, X_offset, standardize);
+          double hess_j = model->hessianTerm(X, j, X_offset, standardize);
+
+          if (hess_j <= 0)
+            continue;
+
+          double beta_j_old = beta(j);
+          double beta_j_new = prox(beta_j_old + c(j) / hess_j, lambda / hess_j);
+          double beta_j_diff = beta_j_new - beta_j_old;
+
+          if (beta_j_diff != 0) {
+            beta(j) = beta_j_new;
+            model->adjustResidual(
+              residual, Xbeta, X, y, j, beta_j_diff, X_offset, standardize);
+          }
+        }
+
+        cd_time += timer.toc() - t0;
+
+      }
 
       if (it % 10 == 0) {
         Rcpp::checkUserInterrupt();
       }
 
-      it++;
       it_inner++;
+      it++;
     }
-
   } else {
     beta.zeros();
   }

@@ -71,14 +71,13 @@ lassoPath(T& X,
   }
 
   const vec X_offset = X_mean / X_sd;
-  const double y_center = mean(y);
+  const double y_mean = mean(y);
+  const double y_sd = stddev(y, 1);
 
   const vec X_norms_squared = squaredColNorms(X, X_offset, standardize);
   const vec X_norms = sqrt(X_norms_squared);
 
   auto model = setupModel(family, X_norms_squared, n, log_hessian_update_type);
-
-  model->standardizeY(y);
 
   model->updateResidual(residual, Xbeta, y);
   updateCorrelation(c, residual, X, X_offset, standardize);
@@ -396,7 +395,7 @@ lassoPath(T& X,
     Rcpp::checkUserInterrupt();
   }
 
-  rescaleCoefficients(betas, X_mean, X_sd, y_center);
+  rescaleCoefficients(betas, X_mean, X_sd, y_mean, y_sd);
 
   full_time = timer.toc() - full_time;
 

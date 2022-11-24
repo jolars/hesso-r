@@ -103,8 +103,6 @@ public:
                                    const arma::vec& X_offset,
                                    const bool standardize);
 
-  void standardizeY(arma::vec& y);
-
   double safeScreeningRadius(const double duality_gap, const double lambda);
 
   double toleranceModifier(const arma::vec& y);

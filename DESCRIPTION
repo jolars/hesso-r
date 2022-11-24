@@ -16,24 +16,19 @@ Authors@R:
         role = "aut",
         email = "jonas.wallin@stat.lu.se",
         comment = c(ORCID = "0000-0003-0381-6593")
-      ),
-      person(
-        given = "Tyler B.",
-        family = "Johnson",
-        role = "ctb",
-        comment = "line search procedure"
       )
     )
 Description: Procedures for fitting L1-regularized least-squares regression (the
-    lasso) and logistic regression using Hessian screening and warm starts.
+    lasso) using Hessian screening and warm starts.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: false
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.2
 LinkingTo:
     Rcpp,
-    RcppArmadillo
+    RcppArmadillo,
+    RcppEigen
 Imports:
     Rcpp
 Suggests:

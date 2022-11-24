@@ -8,7 +8,7 @@ all: install
 clean:
 	$(DELETE) src/*.o src/*.so
 
-document: 
+document: compile-attributes
 	Rscript -e 'devtools::document(roclets = c("rd", "collate", "namespace"))'
 
 compile-attributes: 
@@ -29,7 +29,7 @@ check: compile-attributes
 	Rscript -e 'devtools::check()'
 
 test: compile-attributes
-	Rscript -e 'devtools::test()'
+	Rscript -e 'tinytest::test_package("hesso")'
 
 vignettes:
 	Rscript -e 'devtools::build_vignettes()'

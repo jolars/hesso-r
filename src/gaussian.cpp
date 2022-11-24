@@ -226,12 +226,6 @@ Gaussian::updateGradientOfCorrelation(arma::vec& c_grad,
   c_grad(active_set) = s(active_set);
 }
 
-void
-Gaussian::standardizeY(arma::vec& y)
-{
-  y -= arma::mean(y);
-}
-
 double
 Gaussian::safeScreeningRadius(const double duality_gap, const double lambda)
 {

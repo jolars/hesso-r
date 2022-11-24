@@ -4,18 +4,18 @@
 \alias{check_gaps}
 \title{Get Duality Gaps}
 \usage{
-check_gaps(fit, standardize, x, y, tol_gap = 1e-04)
+check_gaps(beta, lambda, x, y, standardize, tol_gap = 1e-04)
 }
 \arguments{
-\item{fit}{the resulting fit}
-
-\item{standardize}{whether the fit used standardization}
-
 \item{x}{design matrix}
 
 \item{y}{response vector}
 
+\item{standardize}{whether the fit used standardization}
+
 \item{tol_gap}{the tolerance threshold used when fitting}
+
+\item{fit}{the resulting fit}
 }
 \value{
 primals, duals, and relative duality gaps

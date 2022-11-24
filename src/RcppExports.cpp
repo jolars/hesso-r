@@ -2,6 +2,7 @@
 // Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #include <RcppArmadillo.h>
+#include <RcppEigen.h>
 #include <Rcpp.h>
 
 using namespace Rcpp;
@@ -69,10 +70,45 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rcppLassoDense
+Rcpp::List rcppLassoDense(const Eigen::MatrixXd& x, const Eigen::VectorXd& y, const Eigen::ArrayXd& lambda, const Rcpp::List args);
+RcppExport SEXP _hesso_rcppLassoDense(SEXP xSEXP, SEXP ySEXP, SEXP lambdaSEXP, SEXP argsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const Eigen::ArrayXd& >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List >::type args(argsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcppLassoDense(x, y, lambda, args));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_hessian
+Rcpp::List update_hessian(Eigen::MatrixXd& H, Eigen::MatrixXd& Hinv, const Eigen::MatrixXd& x, std::vector<size_t> active_set, std::vector<size_t> active_set_prev, std::vector<size_t> active_perm, std::vector<size_t> active_perm_prev, const bool verify_hessian, const bool verbose);
+RcppExport SEXP _hesso_update_hessian(SEXP HSEXP, SEXP HinvSEXP, SEXP xSEXP, SEXP active_setSEXP, SEXP active_set_prevSEXP, SEXP active_permSEXP, SEXP active_perm_prevSEXP, SEXP verify_hessianSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type H(HSEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type Hinv(HinvSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::vector<size_t> >::type active_set(active_setSEXP);
+    Rcpp::traits::input_parameter< std::vector<size_t> >::type active_set_prev(active_set_prevSEXP);
+    Rcpp::traits::input_parameter< std::vector<size_t> >::type active_perm(active_permSEXP);
+    Rcpp::traits::input_parameter< std::vector<size_t> >::type active_perm_prev(active_perm_prevSEXP);
+    Rcpp::traits::input_parameter< const bool >::type verify_hessian(verify_hessianSEXP);
+    Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_hessian(H, Hinv, x, active_set, active_set_prev, active_perm, active_perm_prev, verify_hessian, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_hesso_lassoPathDense", (DL_FUNC) &_hesso_lassoPathDense, 19},
     {"_hesso_lassoPathSparse", (DL_FUNC) &_hesso_lassoPathSparse, 19},
+    {"_hesso_rcppLassoDense", (DL_FUNC) &_hesso_rcppLassoDense, 4},
+    {"_hesso_update_hessian", (DL_FUNC) &_hesso_update_hessian, 9},
     {NULL, NULL, 0}
 };
 

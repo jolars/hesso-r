@@ -12,8 +12,6 @@ public:
 
   virtual ~Model() = default;
 
-  void setLogHessianUpdateType(const std::string new_log_hessian_update_type);
-
   virtual double primal(const arma::vec& residual,
                         const arma::vec& Xbeta,
                         const arma::vec& beta,
@@ -108,8 +106,6 @@ public:
                                            const arma::uvec& restricted_set,
                                            const arma::vec& X_offset,
                                            const bool standardize) = 0;
-
-  virtual void standardizeY(arma::vec& y) = 0;
 
   virtual double safeScreeningRadius(const double duality_gap,
                                      const double lambda) = 0;

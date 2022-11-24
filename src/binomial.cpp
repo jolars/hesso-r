@@ -12,12 +12,6 @@ Binomial::Binomial(const std::string family,
   , log_hessian_update_type{ log_hessian_update_type }
 {}
 
-void
-Binomial::setLogHessianUpdateType(const std::string new_log_hessian_update_type)
-{
-  log_hessian_update_type = new_log_hessian_update_type;
-}
-
 double
 Binomial::primal(const arma::vec& residual,
                  const arma::vec& Xbeta,
@@ -311,10 +305,6 @@ Binomial::updateGradientOfCorrelation(arma::vec& c_grad,
 
   c_grad(active_set) = s(active_set);
 }
-
-void
-Binomial::standardizeY(arma::vec& y)
-{}
 
 double
 Binomial::safeScreeningRadius(const double duality_gap, const double lambda)

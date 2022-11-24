@@ -3,6 +3,7 @@
 #include "model.h"
 #include "updateCorrelation.h"
 #include <RcppArmadillo.h>
+#include <memory>
 
 template<typename T>
 void

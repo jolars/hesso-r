@@ -19,8 +19,6 @@ public:
            const arma::uword n,
            const std::string log_hessian_update_type);
 
-  void setLogHessianUpdateType(const std::string new_log_hessian_update_type);
-
   double primal(const arma::vec& residual,
                 const arma::vec& Xbeta,
                 const arma::vec& beta,
@@ -113,8 +111,6 @@ public:
                                    const arma::uvec& restricted_set,
                                    const arma::vec& X_offset,
                                    const bool standardize);
-
-  void standardizeY(arma::vec& y);
 
   double safeScreeningRadius(const double duality_gap, const double lambda);
 

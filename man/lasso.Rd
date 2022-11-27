@@ -4,7 +4,16 @@
 \alias{lasso}
 \title{Fit a Lasso Path}
 \usage{
-lasso(x, y, lambda = NULL, tol = 1e-06, max_it = 10000, warm_starts = TRUE)
+lasso(
+  x,
+  y,
+  lambda = NULL,
+  path_length = 100,
+  lambda_min_ratio = if (NROW(x) > NCOL(x)) 1e-04 else 0.01,
+  tol = 1e-06,
+  max_it = 10000,
+  warm_starts = TRUE
+)
 }
 \arguments{
 \item{x}{Design matrix}

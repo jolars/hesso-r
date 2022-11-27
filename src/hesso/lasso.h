@@ -1,121 +1,27 @@
 #pragma once
 
-#include "gaussian.h"
-#include "kkt_check.h"
+#include "math.h"
 #include "objective.h"
-#include "prox.h"
 #include "results.h"
-#include "set_operations.h"
+#include "solver.h"
 #include "utils.h"
 // #include <Eigen/Core>
 // #include <Eigen/Eigenvalues>
 #include <RcppEigen.h>
 #include <boost/dynamic_bitset.hpp>
 #include <iostream>
-#include <memory>
 #include <vector>
 
 namespace hesso {
-
-struct SolverResults
-{
-  const double gap;
-  const size_t passes;
-};
-
-template<typename T, typename P>
-SolverResults
-solver(const T& x,
-       P& objective,
-       Eigen::VectorXd& beta,
-       Eigen::VectorXd& residual,
-       Eigen::VectorXd& gradient,
-       boost::dynamic_bitset<>& working,
-       boost::dynamic_bitset<>& strong,
-       const Eigen::VectorXd& y,
-       const double null_primal,
-       const double lambda,
-       const double tol,
-       const size_t max_it)
-{
-
-  std::vector<double> primals;
-  std::vector<double> duals;
-  std::vector<double> gaps;
-
-  double gap{ 0 };
-
-  size_t it{ 0 };
-
-  for (; it < max_it + 1; ++it) {
-    double max_abs_grad = 0.0;
-    for (size_t j = working.find_first(); j != boost::dynamic_bitset<>::npos;
-         j = working.find_next(j)) {
-      gradient(j) = x.col(j).dot(residual);
-      max_abs_grad = std::max(std::abs(gradient(j)), max_abs_grad);
-    }
-    double primal = objective.loss(residual) + lambda * beta.lpNorm<1>();
-
-    // retrieve feasible dual point by dual scaling
-    double dual_scaling = std::max(1.0, max_abs_grad / lambda);
-    double dual = objective.dual(residual / dual_scaling, y);
-    gap = primal - dual;
-
-    // Rprintf("it: %i primal: %f, dual: %f, gap: %f, tol: %f\n",
-    //         it,
-    //         primal,
-    //         dual,
-    //         gap,
-    //         tol);
-
-    primals.emplace_back(primal);
-    duals.emplace_back(dual);
-    gaps.emplace_back(gap);
-
-    // if (gap <= tol * null_primal || it == max_it) {
-    if (gap <= tol || it == max_it) {
-      bool any_violations = checkKktConditions(
-        working, gradient, ~working & strong, x, residual, lambda);
-      if (!any_violations) {
-        any_violations = checkKktConditions(
-          working, gradient, ~(working | strong), x, residual, lambda);
-        if (!any_violations) {
-          break;
-        }
-      }
-    }
-
-    for (size_t j = working.find_first(); j != boost::dynamic_bitset<>::npos;
-         j = working.find_next(j)) {
-      double grad_j = x.col(j).dot(residual);
-      double t = 1.0 / objective.hessianTerm(x, j);
-      double beta_j_old = beta(j);
-      double beta_j_new = prox(beta_j_old - t * grad_j, t * lambda);
-
-      // Rprintf("  j: %i, gradient: %f, hess: %f, beta_old: %f, beta_new:
-      // %f\n",
-      //         j,
-      //         gradient(j),
-      //         1 / t,
-      //         beta_j_old,
-      //         beta_j_new);
-
-      if (beta_j_new != beta_j_old) {
-        beta(j) = beta_j_new;
-        objective.updateResidual(residual, beta_j_new - beta_j_old, x, j);
-      }
-    }
-  }
-
-  return { gap, it };
-}
 
 template<typename T, typename P>
 Results
 lasso(const T& x,
       P& objective,
       const Eigen::VectorXd& y,
-      const Eigen::ArrayXd& lambda,
+      std::vector<double> lambda,
+      const size_t path_length,
+      const double lambda_min_ratio,
       const double tol,
       const size_t max_it,
       const bool warm_starts)
@@ -124,8 +30,6 @@ lasso(const T& x,
 
   const size_t n = x.rows();
   const size_t p = x.cols();
-
-  MatrixXd betas(p, lambda.size());
 
   VectorXd beta{ VectorXd::Zero(p) };
   VectorXd residual{ -y };
@@ -144,12 +48,21 @@ lasso(const T& x,
   double lambda_max{ 0 };
   size_t first_active;
 
-  for (long int i = 0; i < gradient.size(); ++i) {
+  for (Index i = 0; i < gradient.size(); ++i) {
     if (std::abs(gradient(i)) >= lambda_max) {
       first_active = i;
       lambda_max = std::abs(gradient(i));
     }
   }
+
+  bool automatic_lambda = lambda.empty();
+
+  if (automatic_lambda) {
+    // automatically generate lambda
+    lambda = geomSpace(lambda_max, lambda_min_ratio * lambda_max, path_length);
+  }
+
+  MatrixXd betas(p, lambda.size());
 
   active.emplace_back(first_active);
   ever_active[first_active] = true;
@@ -163,17 +76,22 @@ lasso(const T& x,
   const double null_primal =
     objective.loss(residual) + lambda_max * beta.lpNorm<1>();
 
+  const double dev_null = objective.deviance(residual);
+  double dev_prev = dev_null * 2;
+
   double lambda_prev = lambda_max;
 
-  for (Index step = 0; step < lambda.size(); ++step) {
-    double lambda_next = lambda(step);
+  Index step = 0;
+
+  for (; step < static_cast<int>(lambda.size()); ++step) {
+    double lambda_current = lambda[step];
 
     working = ever_active;
 
     // screening
     strong.reset();
     for (size_t j = 0; j < p; ++j) {
-      if (gradient(j) >= 2 * lambda_next - lambda_prev) {
+      if (gradient(j) >= 2 * lambda_current - lambda_prev) {
         strong[j] = true;
       }
     }
@@ -186,7 +104,7 @@ lasso(const T& x,
 
     if (warm_starts) {
       for (size_t j = 0; j < active.size(); ++j) {
-        beta(active[j]) += (lambda_prev - lambda_next) * h_inv_s(j);
+        beta(active[j]) += (lambda_prev - lambda_current) * h_inv_s(j);
       }
 
       eta.setZero();
@@ -205,7 +123,7 @@ lasso(const T& x,
                                  strong,
                                  y,
                                  null_primal,
-                                 lambda(step),
+                                 lambda[step],
                                  tol,
                                  max_it);
 
@@ -228,7 +146,18 @@ lasso(const T& x,
 
     active.erase(std::remove(active.begin(), active.end(), -1), active.end());
 
-    print(active, "active");
+    if (automatic_lambda) {
+      // check stopping conditions
+      double dev = objective.deviance(residual);
+      double dev_ratio = 1 - dev / dev_null;
+      double dev_change = 1 - dev / dev_prev;
+
+      if (dev_ratio >= 0.999 || dev_change < 1e-5 || active.size() > n) {
+        break;
+      }
+    } else if (step == static_cast<Index>(lambda.size()) - 1) {
+      break;
+    }
 
     std::vector<size_t> active_new;
 
@@ -251,20 +180,8 @@ lasso(const T& x,
     active.insert(active.end(), active_new.cbegin(), active_new.cend());
   }
 
-  return Results{ betas, gaps, passes };
-}
+  lambda.erase(std::cbegin(lambda) + step, std::cend(lambda));
 
-template<typename T>
-Results
-lassoWrapper(const T& x,
-             const Eigen::VectorXd& y,
-             const Eigen::ArrayXd& lambda,
-             const double tol,
-             const size_t max_it,
-             const bool warm_starts)
-{
-  size_t p = x.cols();
-  Objective<Gaussian> objective{ p };
-  return lasso(x, objective, y, lambda, tol, max_it, warm_starts);
+  return Results{ betas, gaps, lambda, passes };
 }
 }

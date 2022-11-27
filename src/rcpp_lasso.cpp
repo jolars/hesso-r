@@ -8,7 +8,7 @@
 Rcpp::List
 rcppLassoDense(const Eigen::MatrixXd& x,
                const Eigen::VectorXd& y,
-               const Eigen::ArrayXd& lambda,
+               const std::vector<double>& lambda,
                const Rcpp::List args)
 {
   return rcppLassoWrapper(x, y, lambda, args);

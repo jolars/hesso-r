@@ -1,7 +1,6 @@
 #pragma once
 
 #include "objective.h"
-#include "set_operations.h"
 #include "subsetting.h"
 // #include <Eigen/Core>
 // #include <Eigen/Eigenvalues>
@@ -59,7 +58,7 @@ updateHessian(Eigen::MatrixXd& H,
 
     LLT<MatrixXd> llt(S.cols());
 
-    double tau_old {0};
+    double tau_old{ 0 };
 
     while (true) {
       llt.compute(S);
@@ -122,12 +121,11 @@ updateHessian(Eigen::MatrixXd& H,
     Hinv = Hinv_new;
   }
 
-  // if (verify_hessian) {
-  //   double hess_inv_error = (H - H * Hinv * H).lpNorm<Infinity>();
-  //   Rcpp::Rcout << "    H_inv error: " << hess_inv_error << std::endl;
+  if (verify_hessian) {
+    double hess_inv_error = (H - H * Hinv * H).lpNorm<Infinity>();
 
-  //   if (hess_inv_error >= 1e-2) {
-  //     Rcpp::stop("inverse matrix computation is incorrect");
-  //   }
-  // }
+    if (hess_inv_error >= 1e-2) {
+      Rcpp::stop("inverse matrix computation is incorrect");
+    }
+  }
 }

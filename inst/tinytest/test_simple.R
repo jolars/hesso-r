@@ -3,8 +3,8 @@ library(glmnet)
 
 set.seed(51)
 
-n <- 10
-p <- 500
+n <- 100
+p <- 5000
 family <- "gaussian"
 density <- 1
 standardize <- FALSE
@@ -43,7 +43,7 @@ lambda <- lambda
 fit <- lasso(
   x,
   y,
-  lambda = lambda,
+  lambda = NULL,
   tol = tol,
   max_it = 100000,
   warm_starts = TRUE
@@ -52,33 +52,36 @@ fit <- lasso(
 # print(fit_glmnet$beta)
 # print(fit$beta)
 
-gaps <- duals <- primals <- double(length(lambda))
+print(lambda)
+print(fit$lambda)
 
-for (i in 1:length(primals)) {
-  b <- fit$beta[, i]
+# gaps <- duals <- primals <- double(length(lambda))
 
-  residual <- x %*% b - y
-  gradient <- t(x) %*% residual
-  theta <- residual / max(1, norm(gradient, "I") / lambda[i])
+# for (i in 1:length(primals)) {
+#   b <- fit$beta[, i]
 
-  primals[i] <- 0.5 * norm(residual, "2")^2 + lambda[i] * sum(abs(b))
-  duals[i] <- 0.5 * norm(y, "2")^2 - 0.5 * norm(theta + y, "2")^2
+#   residual <- x %*% b - y
+#   gradient <- t(x) %*% residual
+#   theta <- residual / max(1, norm(gradient, "I") / lambda[i])
 
-  gaps[i] <- primals[i] - duals[i]
-}
+#   primals[i] <- 0.5 * norm(residual, "2")^2 + lambda[i] * sum(abs(b))
+#   duals[i] <- 0.5 * norm(y, "2")^2 - 0.5 * norm(theta + y, "2")^2
 
-print(fit$passes)
-print(fit$gaps)
+#   gaps[i] <- primals[i] - duals[i]
+# }
 
-# ind <- fit$beta[, 2] != 0
-# print(fit$beta[ind, ])
+# print(fit$passes)
+# print(fit$gaps)
 
-# print(which(fit$beta[, 2] != 0, 2))
-# print(fit$beta[fit$beta[, 2] != 0, 2])
-# print(fit_glmnet$beta[fit_glmnet$beta[, 2] != 0, 2])
+# # ind <- fit$beta[, 2] != 0
+# # print(fit$beta[ind, ])
 
-if (!all(gaps <= tol)) {
-  print(gaps)
-  stop("did not converge")
-}
+# # print(which(fit$beta[, 2] != 0, 2))
+# # print(fit$beta[fit$beta[, 2] != 0, 2])
+# # print(fit_glmnet$beta[fit_glmnet$beta[, 2] != 0, 2])
+
+# if (!all(gaps <= tol)) {
+#   print(gaps)
+#   stop("did not converge")
+# }
 

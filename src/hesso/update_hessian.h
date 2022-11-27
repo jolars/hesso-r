@@ -12,7 +12,7 @@ void
 updateHessian(Eigen::MatrixXd& H,
               Eigen::MatrixXd& Hinv,
               const T& x,
-              P& objective,
+              const P& objective,
               const std::vector<size_t>& active,
               const std::vector<size_t>& active_new,
               const std::vector<size_t>& keep,
@@ -34,7 +34,7 @@ updateHessian(Eigen::MatrixXd& H,
     const MatrixXd Hinv_kk = subset(Hinv, keep, keep);
     const MatrixXd Hinv_dd = subset(Hinv, drop, drop);
 
-    Hinv = Hinv_kk - Hinv_kd * Hinv_dd.selfadjointView<Upper>().llt().solve(
+    Hinv = Hinv_kk - Hinv_kd * Hinv_dd.selfadjointView<Lower>().llt().solve(
                                  Hinv_kd.transpose());
 
     H = subset(H, keep, keep);
@@ -48,7 +48,7 @@ updateHessian(Eigen::MatrixXd& H,
 
     MatrixXd D = objective.hessian(x, active_new, active_new);
     MatrixXd B = objective.hessian(x, active, active_new);
-    MatrixXd S = D - B.transpose() * Hinv * B;
+    MatrixXd S = D - B.transpose() * Hinv.selfadjointView<Lower>() * B;
 
     double gamma = 1e-5 * n;
     double tau = 0;
@@ -61,9 +61,13 @@ updateHessian(Eigen::MatrixXd& H,
 
     double tau_old {0};
 
-    while (llt.info() != Eigen::ComputationInfo::Success) {
-      Rcpp::Rcout << "trying LLT\n";
+    while (true) {
       llt.compute(S);
+
+      if (llt.info() == Eigen::ComputationInfo::Success)
+        break;
+
+      Rcpp::Rcout << "Cholesky inversion failed, updating and retrying\n";
 
       tau = std::max(2 * tau, gamma);
 
@@ -72,8 +76,7 @@ updateHessian(Eigen::MatrixXd& H,
       tau_old = tau;
     }
 
-    MatrixXd I = MatrixXd::Identity(S.rows(), S.cols());
-    MatrixXd Sinv = llt.solve(I);
+    MatrixXd Sinv = llt.solve(MatrixXd::Identity(S.rows(), S.cols()));
 
     // SelfAdjointEigenSolver<MatrixXd> eigen_decomp(S);
 
@@ -119,11 +122,12 @@ updateHessian(Eigen::MatrixXd& H,
     Hinv = Hinv_new;
   }
 
-  if (verify_hessian) {
-    double hess_inv_error = (H - H * Hinv * H).lpNorm<Eigen::Infinity>();
+  // if (verify_hessian) {
+  //   double hess_inv_error = (H - H * Hinv * H).lpNorm<Infinity>();
+  //   Rcpp::Rcout << "    H_inv error: " << hess_inv_error << std::endl;
 
-    if (hess_inv_error >= 1e-2) {
-      Rcpp::stop("inverse matrix computation is incorrect");
-    }
-  }
+  //   if (hess_inv_error >= 1e-2) {
+  //     Rcpp::stop("inverse matrix computation is incorrect");
+  //   }
+  // }
 }

@@ -1,10 +1,10 @@
 library(hesso)
 library(glmnet)
 
-set.seed(53)
+set.seed(51)
 
 n <- 10
-p <- 11
+p <- 500
 family <- "gaussian"
 density <- 1
 standardize <- FALSE
@@ -38,17 +38,19 @@ fit_glmnet <- glmnet(
 
 lambda <- fit_glmnet$lambda * n
 
+lambda <- lambda
+
 fit <- lasso(
   x,
   y,
   lambda = lambda,
   tol = tol,
-  max_it = 1500,
+  max_it = 100000,
   warm_starts = TRUE
 )
 
-print(fit_glmnet$beta)
-print(fit$beta)
+# print(fit_glmnet$beta)
+# print(fit$beta)
 
 gaps <- duals <- primals <- double(length(lambda))
 
@@ -64,8 +66,19 @@ for (i in 1:length(primals)) {
 
   gaps[i] <- primals[i] - duals[i]
 }
-print(gaps)
-print(fit$passes)
 
-stopifnot(all(gaps < tol))
+print(fit$passes)
+print(fit$gaps)
+
+# ind <- fit$beta[, 2] != 0
+# print(fit$beta[ind, ])
+
+# print(which(fit$beta[, 2] != 0, 2))
+# print(fit$beta[fit$beta[, 2] != 0, 2])
+# print(fit_glmnet$beta[fit_glmnet$beta[, 2] != 0, 2])
+
+if (!all(gaps <= tol)) {
+  print(gaps)
+  stop("did not converge")
+}
 

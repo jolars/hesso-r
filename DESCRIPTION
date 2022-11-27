@@ -27,7 +27,6 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.2
 LinkingTo:
     Rcpp,
-    RcppArmadillo,
     RcppEigen
 Imports:
     Rcpp

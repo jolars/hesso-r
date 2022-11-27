@@ -19,6 +19,11 @@ public:
     return 0.5 * residual.squaredNorm();
   }
 
+  double deviance(const Eigen::VectorXd& residual) const
+  {
+    return residual.squaredNorm();
+  }
+
   double dual(const Eigen::VectorXd& theta, const Eigen::VectorXd& y) const
   {
     return 0.5 * y.squaredNorm() - 0.5 * (theta + y).squaredNorm();

@@ -18,6 +18,11 @@ public:
     return static_cast<const Derived*>(this)->loss(residual);
   }
 
+  double deviance(const Eigen::VectorXd& residual) const
+  {
+    return static_cast<const Derived*>(this)->deviance(residual);
+  }
+
   double dual(const Eigen::VectorXd& theta, const Eigen::VectorXd& y) const
   {
     return static_cast<const Derived*>(this)->dual(theta, y);

@@ -25,6 +25,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rcppLassoSparse
+Rcpp::List rcppLassoSparse(const Eigen::SparseMatrix<double>& x, const Eigen::VectorXd& y, const std::vector<double>& lambda, const Rcpp::List args);
+RcppExport SEXP _hesso_rcppLassoSparse(SEXP xSEXP, SEXP ySEXP, SEXP lambdaSEXP, SEXP argsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::SparseMatrix<double>& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List >::type args(argsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcppLassoSparse(x, y, lambda, args));
+    return rcpp_result_gen;
+END_RCPP
+}
 // test_bitset
 void test_bitset();
 RcppExport SEXP _hesso_test_bitset() {
@@ -37,6 +51,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_hesso_rcppLassoDense", (DL_FUNC) &_hesso_rcppLassoDense, 4},
+    {"_hesso_rcppLassoSparse", (DL_FUNC) &_hesso_rcppLassoSparse, 4},
     {"_hesso_test_bitset", (DL_FUNC) &_hesso_test_bitset, 0},
     {NULL, NULL, 0}
 };

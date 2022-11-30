@@ -5,6 +5,10 @@ rcppLassoDense <- function(x, y, lambda, args) {
     .Call(`_hesso_rcppLassoDense`, x, y, lambda, args)
 }
 
+rcppLassoSparse <- function(x, y, lambda, args) {
+    .Call(`_hesso_rcppLassoSparse`, x, y, lambda, args)
+}
+
 test_bitset <- function() {
     invisible(.Call(`_hesso_test_bitset`))
 }

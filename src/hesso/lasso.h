@@ -19,6 +19,7 @@ Results
 lasso(const T& x,
       P& objective,
       const Eigen::VectorXd& y,
+      const bool intercept,
       std::vector<double> lambda,
       const size_t path_length,
       const double lambda_min_ratio,
@@ -31,14 +32,19 @@ lasso(const T& x,
   const size_t n = x.rows();
   const size_t p = x.cols();
 
+  double beta0 = intercept ? y.mean() : 0.0;
+
   VectorXd beta{ VectorXd::Zero(p) };
-  VectorXd residual{ -y };
-  VectorXd eta{ VectorXd::Zero(n) };
+  VectorXd eta{ n };
+  eta.setConstant(beta0);
+  VectorXd residual = objective.residual(eta, y);
   VectorXd gradient{ x.transpose() * residual };
 
   std::vector<size_t> active;
 
   std::vector<size_t> passes;
+  std::vector<double> primals;
+  std::vector<double> duals;
   std::vector<double> gaps;
 
   boost::dynamic_bitset<> ever_active(p);
@@ -55,6 +61,8 @@ lasso(const T& x,
     }
   }
 
+  lambda_max = gradient.lpNorm<Eigen::Infinity>();
+
   bool automatic_lambda = lambda.empty();
 
   if (automatic_lambda) {
@@ -62,6 +70,7 @@ lasso(const T& x,
     lambda = geomSpace(lambda_max, lambda_min_ratio * lambda_max, path_length);
   }
 
+  std::vector<double> beta0s;
   MatrixXd betas(p, lambda.size());
 
   active.emplace_back(first_active);
@@ -107,27 +116,38 @@ lasso(const T& x,
         beta(active[j]) += (lambda_prev - lambda_current) * h_inv_s(j);
       }
 
-      eta.setZero();
+      eta.setConstant(beta0);
       for (const auto& j : active) {
         eta += x.col(j) * beta(j);
       }
-      objective.updateResidual(residual, x * beta, y);
+      objective.updateResidual(residual, eta, y);
+
+      if (intercept) {
+        double intercept_update = residual.mean();
+        objective.updateResidual(residual, intercept_update);
+        beta0 -= intercept_update;
+      }
     }
 
     auto solver_results = solver(x,
                                  objective,
                                  beta,
+                                 beta0,
                                  residual,
                                  gradient,
                                  working,
                                  strong,
                                  y,
+                                 intercept,
                                  null_primal,
                                  lambda[step],
                                  tol,
                                  max_it);
 
     betas.col(step) = beta;
+    beta0s.emplace_back(beta0);
+    primals.emplace_back(solver_results.primal);
+    duals.emplace_back(solver_results.dual);
     gaps.emplace_back(solver_results.gap);
     passes.emplace_back(solver_results.passes);
 
@@ -182,6 +202,6 @@ lasso(const T& x,
 
   lambda.erase(std::cbegin(lambda) + step, std::cend(lambda));
 
-  return Results{ betas, gaps, lambda, passes };
+  return Results{ betas, beta0s, primals, duals, gaps, lambda, passes };
 }
 }

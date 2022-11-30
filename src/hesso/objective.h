@@ -41,6 +41,13 @@ public:
     return static_cast<const Derived*>(this)->updateResidual(residual, eta, y);
   }
 
+  void updateResidual(Eigen::VectorXd& residual,
+                      const double intercept_update) const
+  {
+    return static_cast<const Derived*>(this)->updateResidual(residual,
+                                                             intercept_update);
+  }
+
   template<typename T>
   void updateResidual(Eigen::VectorXd& residual,
                       const double beta_diff,

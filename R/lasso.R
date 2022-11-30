@@ -2,6 +2,7 @@
 #'
 #' @param x Design matrix
 #' @param y Response vector
+#' @param intercept Should we fit an intercept?
 #' @param lambda Lambda sequence
 #' @param tol Stopping tolerance in terms of the duality gap relative to the
 #'   value of the primal objective for the null model
@@ -11,6 +12,7 @@
 #' @export
 lasso <- function(x,
                   y,
+                  intercept = TRUE,
                   lambda = NULL,
                   path_length = 100,
                   lambda_min_ratio = if (NROW(x) > NCOL(x)) 1e-4 else 1e-2,
@@ -22,6 +24,7 @@ lasso <- function(x,
   }
 
   args <- list(
+    intercept = intercept,
     path_length = path_length,
     lambda_min_ratio = lambda_min_ratio,
     tol = tol,

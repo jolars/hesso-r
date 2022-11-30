@@ -4,11 +4,11 @@ library(glmnet)
 set.seed(51)
 
 n <- 100
-p <- 5000
+p <- 10
 family <- "gaussian"
 density <- 1
 standardize <- FALSE
-intercept <- FALSE
+intercept <- TRUE
 tol <- 1e-8
 verbosity <- 0
 
@@ -37,13 +37,13 @@ fit_glmnet <- glmnet(
 )
 
 lambda <- fit_glmnet$lambda * n
-
-lambda <- lambda
+lambda <- lambda[1:5]
 
 fit <- lasso(
   x,
   y,
-  lambda = NULL,
+  intercept = intercept,
+  # lambda = NULL,
   tol = tol,
   max_it = 100000,
   warm_starts = TRUE
@@ -52,36 +52,53 @@ fit <- lasso(
 # print(fit_glmnet$beta)
 # print(fit$beta)
 
-print(lambda)
+# print(fit_glmnet$a0)
+# print(fit$beta0)
+
+gaps <- duals <- primals <- double(length(lambda))
+
+beta <- fit$beta
+beta0 <- fit$beta0
+
+# beta <- fit_glmnet$beta
+# beta0 <- fit_glmnet$a0
+
+for (i in 1:length(lambda)) {
+  b <- beta[, i]
+
+  residual <- x %*% b + beta0[i]*intercept - y
+  gradient <- t(x) %*% residual
+  # dual_scaling <- max(1, norm(gradient, "I") / lambda[i])
+  dual_scaling <- max(1.0, norm(gradient, "I") / lambda[i])
+  theta <- residual / dual_scaling
+
+  primals[i] <- 0.5 * norm(residual, "2")^2 + lambda[i] * sum(abs(b))
+  duals[i] <- 0.5 * (norm(y, "2")^2 - norm(theta + y, "2")^2)
+
+  gaps[i] <- primals[i] - duals[i]
+}
+
 print(fit$lambda)
+print(lambda)
 
-# gaps <- duals <- primals <- double(length(lambda))
 
-# for (i in 1:length(primals)) {
-#   b <- fit$beta[, i]
+lambda_max <- norm(t(x) %*% (y - mean(y)), "I")
+lambda_max <- norm(t(x) %*% -y, "I")
+lambda_max
 
-#   residual <- x %*% b - y
-#   gradient <- t(x) %*% residual
-#   theta <- residual / max(1, norm(gradient, "I") / lambda[i])
+print(fit$passes)
+print(fit$gaps)
 
-#   primals[i] <- 0.5 * norm(residual, "2")^2 + lambda[i] * sum(abs(b))
-#   duals[i] <- 0.5 * norm(y, "2")^2 - 0.5 * norm(theta + y, "2")^2
+# ind <- fit$beta[, 2] != 0
+# print(fit$beta[ind, ])
 
-#   gaps[i] <- primals[i] - duals[i]
-# }
+# print(which(fit$beta[, 2] != 0, 2))
+# print(fit$beta[fit$beta[, 2] != 0, 2])
+# print(fit_glmnet$beta[fit_glmnet$beta[, 2] != 0, 2])
 
-# print(fit$passes)
-# print(fit$gaps)
+if (!all(gaps <= tol)) {
+  print(gaps)
+  stop("did not converge")
+}
 
-# # ind <- fit$beta[, 2] != 0
-# # print(fit$beta[ind, ])
-
-# # print(which(fit$beta[, 2] != 0, 2))
-# # print(fit$beta[fit$beta[, 2] != 0, 2])
-# # print(fit_glmnet$beta[fit_glmnet$beta[, 2] != 0, 2])
-
-# if (!all(gaps <= tol)) {
-#   print(gaps)
-#   stop("did not converge")
-# }
 

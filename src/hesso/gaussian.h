@@ -51,6 +51,12 @@ public:
     residual += x.col(j) * beta_diff;
   }
 
+  void updateResidual(Eigen::VectorXd& residual,
+                      const double intercept_update) const
+  {
+    residual.array() -= intercept_update;
+  }
+
   template<typename T>
   Eigen::MatrixXd hessian(const T& x,
                           const std::vector<size_t>& ind_a,

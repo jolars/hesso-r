@@ -5,12 +5,13 @@
 #include "prox.h"
 #include <RcppEigen.h>
 #include <boost/dynamic_bitset.hpp>
-#include <vector>
 
 namespace hesso {
 
 struct SolverResults
 {
+  const double primal;
+  const double dual;
   const double gap;
   const size_t passes;
 };
@@ -20,11 +21,13 @@ SolverResults
 solver(const T& x,
        P& objective,
        Eigen::VectorXd& beta,
+       double& beta0,
        Eigen::VectorXd& residual,
        Eigen::VectorXd& gradient,
        boost::dynamic_bitset<>& working,
        boost::dynamic_bitset<>& strong,
        const Eigen::VectorXd& y,
+       const bool intercept,
        const double null_primal,
        const double lambda,
        const double tol,
@@ -35,6 +38,8 @@ solver(const T& x,
   std::vector<double> duals;
   std::vector<double> gaps;
 
+  double primal{ 0 };
+  double dual{ 0 };
   double gap{ 0 };
 
   size_t it{ 0 };
@@ -46,11 +51,14 @@ solver(const T& x,
       gradient(j) = x.col(j).dot(residual);
       max_abs_grad = std::max(std::abs(gradient(j)), max_abs_grad);
     }
-    double primal = objective.loss(residual) + lambda * beta.lpNorm<1>();
+    Eigen::VectorXd eta = (x * beta).array() + beta0;
+    objective.updateResidual(residual, eta, y);
+    primal = objective.loss(residual) + lambda * beta.lpNorm<1>();
 
     // retrieve feasible dual point by dual scaling
+    gradient = x.transpose() * residual;
     double dual_scaling = std::max(1.0, max_abs_grad / lambda);
-    double dual = objective.dual(residual / dual_scaling, y);
+    dual = objective.dual(residual / dual_scaling, y);
     gap = primal - dual;
 
     // Rprintf("it: %i primal: %f, dual: %f, gap: %f, tol: %f\n",
@@ -97,8 +105,14 @@ solver(const T& x,
         objective.updateResidual(residual, beta_j_new - beta_j_old, x, j);
       }
     }
+
+    if (intercept) {
+      double intercept_update = residual.mean();
+      objective.updateResidual(residual, intercept_update);
+      beta0 -= intercept_update;
+    }
   }
 
-  return { gap, it };
+  return { primal, dual, gap, it };
 }
 }

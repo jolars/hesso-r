@@ -1,13 +1,13 @@
 #pragma once
 
-#include "RcppEigen.h"
 #include "gaussian.h"
 #include "lasso.h"
+#include <Eigen/Core>
 
 namespace hesso {
-template<typename T, typename... Ts>
+template<typename MatrixType, typename... Ts>
 Results
-lassoWrapper(const T& x, Ts&&... args)
+lassoWrapper(const MatrixType& x, Ts&&... args)
 {
   size_t p = x.cols();
   hesso::Objective<hesso::Gaussian> objective{ p };

@@ -3,5 +3,6 @@
 export(check_gaps)
 export(generate_design)
 export(lasso)
+import(Matrix)
 importFrom(Rcpp,sourceCpp)
 useDynLib(hesso, .registration = TRUE)

@@ -5,9 +5,8 @@
 #include "results.h"
 #include "solver.h"
 #include "utils.h"
-// #include <Eigen/Core>
-// #include <Eigen/Eigenvalues>
-#include <RcppEigen.h>
+#include <Eigen/Core>
+#include <Eigen/Eigenvalues>
 #include <boost/dynamic_bitset.hpp>
 #include <iostream>
 #include <vector>
@@ -43,8 +42,6 @@ lasso(const T& x,
   std::vector<size_t> active;
 
   std::vector<size_t> passes;
-  std::vector<double> primals;
-  std::vector<double> duals;
   std::vector<double> gaps;
 
   boost::dynamic_bitset<> ever_active(p);
@@ -146,8 +143,6 @@ lasso(const T& x,
 
     betas.col(step) = beta;
     beta0s.emplace_back(beta0);
-    primals.emplace_back(solver_results.primal);
-    duals.emplace_back(solver_results.dual);
     gaps.emplace_back(solver_results.gap);
     passes.emplace_back(solver_results.passes);
 
@@ -194,14 +189,13 @@ lasso(const T& x,
       }
     }
 
-    updateHessian(
-      h, h_inv, x, objective, active, active_new, keep, drop, true, true);
+    updateHessian(h, h_inv, x, objective, active, active_new, keep, drop);
 
     active.insert(active.end(), active_new.cbegin(), active_new.cend());
   }
 
   lambda.erase(std::cbegin(lambda) + step, std::cend(lambda));
 
-  return Results{ betas, beta0s, primals, duals, gaps, lambda, passes };
+  return Results{ betas, beta0s, gaps, lambda, passes };
 }
 }

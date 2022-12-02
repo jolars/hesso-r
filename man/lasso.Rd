@@ -7,6 +7,7 @@
 lasso(
   x,
   y,
+  intercept = TRUE,
   lambda = NULL,
   path_length = 100,
   lambda_min_ratio = if (NROW(x) > NCOL(x)) 1e-04 else 0.01,
@@ -19,6 +20,8 @@ lasso(
 \item{x}{Design matrix}
 
 \item{y}{Response vector}
+
+\item{intercept}{Should we fit an intercept?}
 
 \item{lambda}{Lambda sequence}
 

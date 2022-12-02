@@ -10,8 +10,6 @@ namespace hesso {
 
 struct SolverResults
 {
-  const double primal;
-  const double dual;
   const double gap;
   const size_t passes;
 };
@@ -34,12 +32,6 @@ solver(const T& x,
        const size_t max_it)
 {
 
-  std::vector<double> primals;
-  std::vector<double> duals;
-  std::vector<double> gaps;
-
-  double primal{ 0 };
-  double dual{ 0 };
   double gap{ 0 };
 
   size_t it{ 0 };
@@ -53,26 +45,14 @@ solver(const T& x,
     }
     Eigen::VectorXd eta = (x * beta).array() + beta0;
     objective.updateResidual(residual, eta, y);
-    primal = objective.loss(residual) + lambda * beta.lpNorm<1>();
+    double primal = objective.loss(residual) + lambda * beta.lpNorm<1>();
 
     // retrieve feasible dual point by dual scaling
     gradient = x.transpose() * residual;
     double dual_scaling = std::max(1.0, max_abs_grad / lambda);
-    dual = objective.dual(residual / dual_scaling, y);
+    double dual = objective.dual(residual / dual_scaling, y);
     gap = primal - dual;
 
-    // Rprintf("it: %i primal: %f, dual: %f, gap: %f, tol: %f\n",
-    //         it,
-    //         primal,
-    //         dual,
-    //         gap,
-    //         tol);
-
-    primals.emplace_back(primal);
-    duals.emplace_back(dual);
-    gaps.emplace_back(gap);
-
-    // if (gap <= tol * null_primal || it == max_it) {
     if (gap <= tol || it == max_it) {
       bool any_violations = checkKktConditions(
         working, gradient, ~working & strong, x, residual, lambda);
@@ -92,14 +72,6 @@ solver(const T& x,
       double beta_j_old = beta(j);
       double beta_j_new = prox(beta_j_old - t * grad_j, t * lambda);
 
-      // Rprintf("  j: %i, gradient: %f, hess: %f, beta_old: %f, beta_new:
-      // %f\n",
-      //         j,
-      //         gradient(j),
-      //         1 / t,
-      //         beta_j_old,
-      //         beta_j_new);
-
       if (beta_j_new != beta_j_old) {
         beta(j) = beta_j_new;
         objective.updateResidual(residual, beta_j_new - beta_j_old, x, j);
@@ -113,6 +85,6 @@ solver(const T& x,
     }
   }
 
-  return { primal, dual, gap, it };
+  return { gap, it };
 }
 }

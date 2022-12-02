@@ -2,9 +2,8 @@
 
 #include "objective.h"
 #include "subsetting.h"
-// #include <Eigen/Core>
-// #include <Eigen/Eigenvalues>
-#include <RcppEigen.h>
+#include <Eigen/Core>
+#include <Eigen/Eigenvalues>
 
 template<typename T, typename P>
 void
@@ -15,20 +14,13 @@ updateHessian(Eigen::MatrixXd& H,
               const std::vector<size_t>& active,
               const std::vector<size_t>& active_new,
               const std::vector<size_t>& keep,
-              const std::vector<size_t>& drop,
-              const bool verify_hessian,
-              const bool verbose)
+              const std::vector<size_t>& drop)
 {
   using namespace Eigen;
 
   const size_t n = x.rows();
 
   if (!drop.empty()) {
-    if (verbose) {
-      Rprintf("    dropping deactivated predictors for inverse (n = %i)\n",
-              drop.size());
-    }
-
     const MatrixXd Hinv_kd = subset(Hinv, keep, drop);
     const MatrixXd Hinv_kk = subset(Hinv, keep, keep);
     const MatrixXd Hinv_dd = subset(Hinv, drop, drop);
@@ -40,11 +32,6 @@ updateHessian(Eigen::MatrixXd& H,
   }
 
   if (!active_new.empty()) {
-    if (verbose) {
-      Rprintf("    adding newly activated predictors to inverse (n = %i)\n",
-              active_new.size());
-    }
-
     MatrixXd D = objective.hessian(x, active_new, active_new);
     MatrixXd B = objective.hessian(x, active, active_new);
     MatrixXd S = D - B.transpose() * Hinv.selfadjointView<Lower>() * B;
@@ -65,8 +52,6 @@ updateHessian(Eigen::MatrixXd& H,
 
       if (llt.info() == Eigen::ComputationInfo::Success)
         break;
-
-      Rcpp::Rcout << "Cholesky inversion failed, updating and retrying\n";
 
       tau = std::max(2 * tau, gamma);
 
@@ -119,13 +104,5 @@ updateHessian(Eigen::MatrixXd& H,
 
     H = H_new;
     Hinv = Hinv_new;
-  }
-
-  if (verify_hessian) {
-    double hess_inv_error = (H - H * Hinv * H).lpNorm<Infinity>();
-
-    if (hess_inv_error >= 1e-2) {
-      Rcpp::stop("inverse matrix computation is incorrect");
-    }
   }
 }

@@ -32,7 +32,6 @@ Imports:
     Rcpp
 Suggests:
     tinytest,
-    glmnet,
     covr
 Depends:
     R (>= 4.1),

@@ -35,8 +35,6 @@ rcppLassoWrapper(const T& x,
   return Rcpp::List::create(Named("beta") = wrap(results.beta),
                             Named("beta0") = wrap(results.beta0),
                             Named("lambda") = wrap(results.lambda),
-                            Named("primals") = wrap(results.primals),
-                            Named("duals") = wrap(results.duals),
                             Named("gaps") = wrap(results.gaps),
                             Named("passes") = wrap(results.passes));
 }

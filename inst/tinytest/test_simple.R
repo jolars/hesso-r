@@ -78,27 +78,5 @@ for (i in 1:length(lambda)) {
   gaps[i] <- primals[i] - duals[i]
 }
 
-print(fit$lambda)
-print(lambda)
-
-
-lambda_max <- norm(t(x) %*% (y - mean(y)), "I")
-lambda_max <- norm(t(x) %*% -y, "I")
-lambda_max
-
-print(fit$passes)
-print(fit$gaps)
-
-# ind <- fit$beta[, 2] != 0
-# print(fit$beta[ind, ])
-
-# print(which(fit$beta[, 2] != 0, 2))
-# print(fit$beta[fit$beta[, 2] != 0, 2])
-# print(fit_glmnet$beta[fit_glmnet$beta[, 2] != 0, 2])
-
-if (!all(gaps <= tol)) {
-  print(gaps)
-  stop("did not converge")
-}
-
+tinytest::expect_true(all(gaps <= tol))
 

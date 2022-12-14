@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <vector>
 
+namespace hesso {
+
 template<typename T1, typename T2>
 std::vector<T1>
 subset(const std::vector<T1>& x, const std::vector<T2>& indices)
@@ -32,4 +34,6 @@ subset(const Eigen::MatrixXd& m,
   }
 
   return m_subset;
+}
+
 }

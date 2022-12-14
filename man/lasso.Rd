@@ -17,13 +17,19 @@ lasso(
 )
 }
 \arguments{
-\item{x}{Design matrix}
+\item{x}{Design matrix. If sparse needs to be of class \code{dgCMatrix}. If dense,
+needs to be a matrix (i.e. not a \code{data.frame}).}
 
 \item{y}{Response vector}
 
-\item{intercept}{Should we fit an intercept?}
+\item{intercept}{Whether to fit an intercept}
 
 \item{lambda}{Lambda sequence}
+
+\item{path_length}{The length of the path. Ignored if \code{lambda} is not \code{NULL}.}
+
+\item{lambda_min_ratio}{A fraction of the largest lambda in the path, which
+is the last point on the path. Ignored if \code{lambda} is not NULL.}
 
 \item{tol}{Stopping tolerance in terms of the duality gap relative to the
 value of the primal objective for the null model}

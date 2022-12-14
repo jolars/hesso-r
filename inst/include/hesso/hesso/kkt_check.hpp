@@ -3,6 +3,8 @@
 #include <Eigen/Core>
 #include <boost/dynamic_bitset.hpp>
 
+namespace hesso {
+
 template<typename MatrixType>
 bool
 checkKktConditions(boost::dynamic_bitset<>& working,
@@ -26,4 +28,6 @@ checkKktConditions(boost::dynamic_bitset<>& working,
   }
 
   return any_violations;
+}
+
 }

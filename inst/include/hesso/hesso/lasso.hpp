@@ -1,10 +1,11 @@
 #pragma once
 
-#include "math.h"
-#include "objective.h"
-#include "results.h"
-#include "solver.h"
-#include "utils.h"
+#include "math.hpp"
+#include "objective.hpp"
+#include "results.hpp"
+#include "solver.hpp"
+#include "update_hessian.hpp"
+#include "utils.hpp"
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 #include <boost/dynamic_bitset.hpp>

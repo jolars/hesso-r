@@ -1,9 +1,12 @@
 #pragma once
 
-#include "objective.h"
-#include "subsetting.h"
+#include "objective.hpp"
+#include "subsetting.hpp"
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
+#include <vector>
+
+namespace hesso {
 
 template<typename T, typename P>
 void
@@ -62,25 +65,6 @@ updateHessian(Eigen::MatrixXd& H,
 
     MatrixXd Sinv = llt.solve(MatrixXd::Identity(S.rows(), S.cols()));
 
-    // SelfAdjointEigenSolver<MatrixXd> eigen_decomp(S);
-
-    // MatrixXd Q = eigen_decomp.eigenvectors();
-    // VectorXd l = eigen_decomp.eigenvalues();
-
-    // if (l.minCoeff() < 1e-4 * n) {
-    //   for (long int i = 0; i < l.size(); ++i) {
-    //     D(i, i) += 1e-4 * n;
-    //     l(i) += 1e-4 * n;
-    //   }
-    // }
-
-    // VectorXd l_inv(l.size());
-    // for (long int i = 0; i < l.size(); ++i) {
-    //   l_inv(i) = 1.0 / l(i);
-    // }
-
-    // MatrixXd Sinv = Q * l_inv.asDiagonal() * Q.transpose();
-
     MatrixXd Hinv_B_Sinv = Hinv * B * Sinv;
 
     const size_t N = H.cols();
@@ -106,3 +90,5 @@ updateHessian(Eigen::MatrixXd& H,
     Hinv = Hinv_new;
   }
 }
+
+} // namespace hesso

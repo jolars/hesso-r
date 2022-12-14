@@ -3,6 +3,8 @@
 #include <cmath>
 #include <vector>
 
+namespace hesso {
+
 template<typename T>
 int
 signum(T val)
@@ -23,4 +25,6 @@ geomSpace(const T from, const T to, const N n)
   }
 
   return x;
+}
+
 }

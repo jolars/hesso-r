@@ -1,8 +1,7 @@
 #pragma once
 
-#include "hesso/gaussian.h"
-#include "hesso/lasso_wrapper.h"
 #include <RcppEigen.h>
+#include <hesso.hpp>
 
 template<typename T>
 Rcpp::List

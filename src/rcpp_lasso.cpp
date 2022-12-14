@@ -1,8 +1,6 @@
-#include "hesso/objective.h"
-#include "hesso/update_hessian.h"
 #include "rcpp_lasso_wrapper.h"
 #include <RcppEigen.h>
-#include <boost/dynamic_bitset.hpp>
+#include <hesso.hpp>
 
 // [[Rcpp::export]]
 Rcpp::List

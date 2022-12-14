@@ -1,9 +1,9 @@
 #pragma once
 
-#include "kkt_check.h"
-#include "objective.h"
-#include "prox.h"
-#include <RcppEigen.h>
+#include "kkt_check.hpp"
+#include "objective.hpp"
+#include "prox.hpp"
+#include <Eigen/Core>
 #include <boost/dynamic_bitset.hpp>
 
 namespace hesso {

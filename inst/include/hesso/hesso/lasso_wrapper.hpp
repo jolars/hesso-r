@@ -1,7 +1,7 @@
 #pragma once
 
-#include "gaussian.h"
-#include "lasso.h"
+#include "gaussian.hpp"
+#include "lasso.hpp"
 #include <Eigen/Core>
 
 namespace hesso {

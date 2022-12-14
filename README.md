@@ -7,7 +7,6 @@
 
 [![Codecov test
 coverage](https://codecov.io/gh/jolars/hesso/branch/main/graph/badge.svg)](https://app.codecov.io/gh/jolars/hesso?branch=main)
-[![R-CMD-check](https://github.com/jolars/hesso/workflows/R-CMD-check/badge.svg)](https://github.com/jolars/hesso/actions)
 [![R-CMD-check](https://github.com/jolars/hesso-r/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jolars/hesso-r/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
@@ -18,5 +17,5 @@ You can install the development version of hesso from
 
 ``` r
 # install.packages("remotes")
-remotes::install_github("jolars/hesso")
+remotes::install_github("jolars/hesso-r")
 ```
